@@ -2,3 +2,4 @@ Flask
 requests
 gunicorn
 beautifulsoup4
+openai
