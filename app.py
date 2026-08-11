@@ -25,49 +25,46 @@ KST = ZoneInfo("Asia/Seoul")
 # =========================
 # 공시 종류를 쉽게 표시
 # =========================
-
 def classify_report(report_name):
-
     name = report_name.replace(" ", "")
 
     if "단일판매" in name or "공급계약" in name:
-        return "공급계약"
+        return "🤝 공급계약"
 
     if "무상증자" in name:
-        return "무상증자"
+        return "🎁 무상증자"
 
     if "유상증자" in name:
-        return "유상증자"
+        return "⚠️ 유상증자"
 
     if "전환사채" in name:
-        return "전환사채(CB)"
+        return "⚠️ 전환사채(CB)"
 
     if "신주인수권부사채" in name:
-        return "신주인수권부사채(BW)"
+        return "⚠️ 신주인수권부사채(BW)"
 
     if "최대주주변경" in name:
-        return "최대주주 변경"
+        return "👤 최대주주 변경"
 
     if "자기주식" in name:
-        return "자사주"
+        return "💰 자사주"
 
     if "현금ㆍ현물배당" in name or "배당" in name:
-        return "배당"
+        return "💰 배당"
 
     if "영업실적" in name or "매출액또는손익구조" in name:
-        return "실적"
+        return "📈 실적"
 
     if "합병" in name:
-        return "합병"
+        return "🔄 합병"
 
     if "분할" in name:
-        return "회사분할"
+        return "🔄 회사분할"
 
     if "주식등의대량보유" in name:
-        return "대량보유 보고"
+        return "👤 대량보유 보고"
 
-    return "일반공시"
-
+    return "📄 일반공시"
 
 # =========================
 # DART 오늘 공시 전체 조회
