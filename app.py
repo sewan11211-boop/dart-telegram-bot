@@ -498,7 +498,6 @@ corp_name = html.escape(corp_name)
 report_name = html.escape(report_name)
 summary = html.escape(summary)
 impact = html.escape(impact)
-
 message = (
     f"<b>{report_type}</b>\n\n"
     f"<b>{corp_name}</b>\n"
