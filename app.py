@@ -486,54 +486,54 @@ def send_telegram(item):
         "dsaf001/main.do"
         f"?rcpNo={rcept_no}"
     )
+if stock_code:
+    company_link = (
+        "https://finance.naver.com/"
+        f"item/main.nhn?code={stock_code}"
+    )
+else:
+    company_link = ""
 
-    if stock_code:
-        company_link = (
-            "https://finance.naver.com/"
-            f"item/main.nhn?code={stock_code}"
-        )
-    else:
-        company_link = ""
 corp_name = html.escape(corp_name)
 report_name = html.escape(report_name)
 summary = html.escape(summary)
 impact = html.escape(impact)
-    message = (
-        f"<b>{report_type}</b>\n\n"
-        f"<b>{corp_name}</b>\n"
-        f"{report_name}\n\n"
-        f"<b>핵심내용</b>\n"
-        f"{summary}\n\n"
-        f"<b>판단 : {impact}</b>\n\n"
-        f"📌 공시 내용을 간단히 정리한 참고 정보입니다.\n\n"
-        f"<b>공시링크</b>\n"
-        f"{dart_link}\n"
+
+message = (
+    f"<b>{report_type}</b>\n\n"
+    f"<b>{corp_name}</b>\n"
+    f"{report_name}\n\n"
+    f"<b>핵심내용</b>\n"
+    f"{summary}\n\n"
+    f"<b>판단 : {impact}</b>\n\n"
+    f"📌 공시 내용을 간단히 정리한 참고 정보입니다.\n\n"
+    f"<b>공시링크</b>\n"
+    f"{dart_link}\n"
+)
+
+if company_link:
+    message += (
+        f"\n<b>회사정보</b>\n"
+        f"{company_link}"
     )
 
-    if company_link:
-        message += (
-            f"\n<b>회사정보</b>\n"
-            f"{company_link}"
-        )
+url = (
+    "https://api.telegram.org/"
+    f"bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+)
 
-    url = (
-        "https://api.telegram.org/"
-        f"bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    )
+response = requests.post(
+    url,
+    data={
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": message,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True,
+    },
+    timeout=20,
+)
 
-    response = requests.post(
-        url,
-        data={
-            "chat_id": TELEGRAM_CHAT_ID,
-            "text": message,
-            "parse_mode": "HTML",
-            "disable_web_page_preview": True,
-        },
-        timeout=20,
-    )
-
-    response.raise_for_status()
-
+response.raise_for_status()
 # =========================
 # 신규 공시 확인
 # =========================
