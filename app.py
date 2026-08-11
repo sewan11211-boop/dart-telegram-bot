@@ -248,58 +248,65 @@ def find_keyword_sentence(text, keywords):
 # =========================
 
 def make_summary(report_type, document_text):
-
     if not document_text:
+        return "공시 세부내용은 DART 원문에서 확인할 수 있습니다."
 
-        return "공시 세부내용은 원문에서 확인할 수 있습니다."
-
+    # 공시 종류별 핵심 항목
     keyword_map = {
-
         "공급계약": [
             "계약금액",
             "최근매출액",
+            "매출액대비",
             "계약상대",
+            "계약기간",
         ],
 
         "무상증자": [
             "신주배정",
             "신주의 수",
-            "기준일",
+            "1주당",
+            "배정기준일",
         ],
 
         "유상증자": [
             "신주의 수",
             "자금조달",
             "발행가액",
+            "증자방식",
         ],
 
         "전환사채(CB)": [
             "사채의 권면",
             "전환가액",
             "전환청구",
+            "발행대상",
         ],
 
         "신주인수권부사채(BW)": [
             "사채의 권면",
             "행사가액",
             "행사기간",
+            "발행대상",
         ],
 
         "최대주주 변경": [
             "변경후 최대주주",
             "소유비율",
             "변경사유",
+            "변경일자",
         ],
 
         "자사주": [
             "취득예정주식",
             "취득예정금액",
             "취득목적",
+            "취득기간",
         ],
 
         "배당": [
             "주당배당금",
             "배당금총액",
+            "시가배당율",
             "배당기준일",
         ],
 
@@ -307,46 +314,80 @@ def make_summary(report_type, document_text):
             "매출액",
             "영업이익",
             "당기순이익",
+            "전년동기",
+        ],
+
+        "합병": [
+            "합병비율",
+            "합병목적",
+            "합병기일",
+            "합병상대회사",
+        ],
+
+        "회사분할": [
+            "분할방법",
+            "분할목적",
+            "분할기일",
+            "신설회사",
         ],
 
         "대량보유 보고": [
+            "보유주식등의 수",
             "보유비율",
-            "보유주식",
-            "변동",
+            "변동주식수",
+            "변동사유",
         ],
     }
 
-    keywords = keyword_map.get(report_type)
+    keywords = keyword_map.get(report_type, [])
 
+    # 중요 투자공시가 아닌 경우
     if not keywords:
-        return "세부내용은 DART 원문에서 확인할 수 있습니다."
-
-    found = []
-
-    for keyword in keywords:
-
-        result = find_keyword_sentence(
-            document_text,
-            [keyword]
+        return (
+            "투자 핵심 공시로 분류되지 않은 일반 공시입니다.\n"
+            "세부내용은 DART 원문에서 확인할 수 있습니다."
         )
 
-        if result:
-            found.append(result)
+    # 공시 원문을 줄 단위로 정리
+    lines = [
+        re.sub(r"\s+", " ", line).strip()
+        for line in document_text.splitlines()
+        if line.strip()
+    ]
 
-        if len(found) >= 2:
+    found = []
+    used = set()
+
+    for keyword in keywords:
+        for line in lines:
+            clean_line = line.replace(" ", "")
+
+            if keyword.replace(" ", "") in clean_line:
+                # 너무 긴 HTML/본문 문장 제외
+                if len(line) > 180:
+                    continue
+
+                if line not in used:
+                    found.append(line)
+                    used.add(line)
+
+                break
+
+        # 텔레그램이 너무 길어지는 것 방지
+        if len(found) >= 4:
             break
 
     if not found:
-
-        return "세부내용은 DART 원문에서 확인할 수 있습니다."
+        return (
+            f"{report_type} 관련 공시입니다.\n"
+            "핵심 수치는 DART 원문에서 확인해 주세요."
+        )
 
     summary = "\n".join(
-        f"• {item}" for item in found
+        f"• {line}" for line in found
     )
 
-    # 텔레그램 메시지가 너무 길어지는 것 방지
-    return summary[:900]
-
+    return summary[:1200]
 
 # =========================
 # 텔레그램 전송
