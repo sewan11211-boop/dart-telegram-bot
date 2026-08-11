@@ -66,6 +66,95 @@ def classify_report(report_name):
         return "👤 대량보유 보고"
 
     return "📄 일반공시"
+    # =========================
+# AI 참고 분석
+# =========================
+
+def make_ai_analysis(
+    corp_name,
+    report_name,
+    report_type,
+    summary,
+    impact,
+    document_text,
+):
+    if not OPENAI_API_KEY:
+        return "AI 분석 기능이 설정되지 않았습니다."
+
+    prompt = f"""
+너는 국내 주식시장 공시를 정리하는 정보성 분석 AI다.
+
+아래 공시 내용을 바탕으로 투자자가 참고할 수 있는
+객관적인 분석을 작성한다.
+
+중요 원칙:
+- 매수 또는 매도를 추천하지 않는다.
+- 목표주가나 미래 수익률을 예측하지 않는다.
+- "사야 한다", "팔아야 한다" 등의 표현을 사용하지 않는다.
+- 공시에서 확인되는 긍정적인 요소와 주의할 요소를 구분한다.
+- 확인되지 않은 사실은 추측하지 않는다.
+- 투자 판단은 이용자 본인의 몫이라는 점을 전제로 한다.
+- 짧고 이해하기 쉽게 작성한다.
+
+기업명: {corp_name}
+공시명: {report_name}
+공시분류: {report_type}
+기존 판단: {impact}
+
+핵심내용:
+{summary}
+
+공시 원문:
+{document_text[:6000]}
+
+다음 형식으로 작성한다.
+
+[AI 참고분석]
+
+핵심 포인트:
+- 한 줄 요약
+
+긍정 요인:
+- 공시에서 확인되는 긍정적인 요소
+
+주의 요인:
+- 공시에서 확인되는 주의할 요소
+
+종합:
+- 현재 공시만 놓고 볼 때 참고할 사항을 한두 문장으로 정리
+
+※ 공시 및 공개된 정보를 바탕으로 작성한 참고용 분석이며,
+투자 권유나 수익을 보장하는 내용이 아닙니다.
+"""
+
+    try:
+        response = requests.post(
+            "https://api.openai.com/v1/responses",
+            headers={
+                "Authorization": f"Bearer {OPENAI_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "gpt-5-mini",
+                "input": prompt,
+                "store": False,
+            },
+            timeout=60,
+        )
+
+        response.raise_for_status()
+
+        data = response.json()
+        result = data.get("output_text")
+
+        if result:
+            return result.strip()
+
+        return "AI 분석 결과를 가져오지 못했습니다."
+
+    except Exception as e:
+        print("AI 분석 실패:", e)
+        return "AI 분석을 일시적으로 불러오지 못했습니다."
 def judge_impact(report_type, report_name):
     name = report_name.replace(" ", "")
 
