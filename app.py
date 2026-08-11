@@ -145,13 +145,17 @@ def make_ai_analysis(
 
         response.raise_for_status()
 
-        data = response.json()
-        result = data.get("output_text")
+   data = response.json()
 
-        if result:
-            return result.strip()
+result = ""
+for output in data.get("output", []):
+    for content in output.get("content", []):
+        if content.get("type") == "output_text":
+            result += content.get("text", "")
 
-        return "AI 분석 결과를 가져오지 못했습니다."
+if result:
+    return result.strip()
+    return "AI 분석 결과를 가져오지 못했습니다."
 
     except Exception as e:
         print("AI 분석 실패:", e)
