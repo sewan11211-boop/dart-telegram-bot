@@ -1,9 +1,10 @@
-import os
-import time
-import re
-import io
-import zipfile
-import requests
+1 import os
+2 import time
+3 import re
+4 import html
+5 import io
+6 import zipfile
+7 import requests
 
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -432,7 +433,6 @@ def make_summary(report_type, document_text):
 # =========================
 
 def send_telegram(item):
-
     rcept_no = item["rcept_no"]
 
     corp_name = item.get(
@@ -445,7 +445,17 @@ def send_telegram(item):
         "공시"
     )
 
+    stock_code = item.get(
+        "stock_code",
+        ""
+    )
+
     report_type = classify_report(
+        report_name
+    )
+
+    impact = judge_impact(
+        report_type,
         report_name
     )
 
@@ -453,27 +463,55 @@ def send_telegram(item):
         rcept_no
     )
 
+    # 이모티콘을 제거한 공시종류로 요약 함수에 전달
+    plain_type = (
+        report_type
+        .replace("🤝 ", "")
+        .replace("🎁 ", "")
+        .replace("⚠️ ", "")
+        .replace("👤 ", "")
+        .replace("💰 ", "")
+        .replace("📈 ", "")
+        .replace("🔄 ", "")
+        .replace("📄 ", "")
+    )
+
     summary = make_summary(
-        report_type,
+        plain_type,
         document_text
     )
 
-    link = (
+    dart_link = (
         "https://dart.fss.or.kr/"
         "dsaf001/main.do"
         f"?rcpNo={rcept_no}"
     )
 
+    if stock_code:
+        company_link = (
+            "https://finance.naver.com/"
+            f"item/main.nhn?code={stock_code}"
+        )
+    else:
+        company_link = ""
+
     message = (
-        f"[공시레이더] {report_type}\n\n"
-        f"{corp_name}\n"
+        f"<b>{report_type}</b>\n\n"
+        f"<b>{corp_name}</b>\n"
         f"{report_name}\n\n"
-        f"핵심내용\n"
+        f"<b>핵심내용</b>\n"
         f"{summary}\n\n"
-        f"📌 공시 내용을 간단히 정리한 정보입니다.\n"
-        f"🔗 DART 원문보기\n"
-        f"{link}"
+        f"<b>판단 : {impact}</b>\n\n"
+        f"📌 공시 내용을 간단히 정리한 참고 정보입니다.\n\n"
+        f"<b>공시링크</b>\n"
+        f"{dart_link}\n"
     )
+
+    if company_link:
+        message += (
+            f"\n<b>회사정보</b>\n"
+            f"{company_link}"
+        )
 
     url = (
         "https://api.telegram.org/"
@@ -485,13 +523,13 @@ def send_telegram(item):
         data={
             "chat_id": TELEGRAM_CHAT_ID,
             "text": message,
+            "parse_mode": "HTML",
             "disable_web_page_preview": True,
         },
         timeout=20,
     )
 
     response.raise_for_status()
-
 
 # =========================
 # 신규 공시 확인
