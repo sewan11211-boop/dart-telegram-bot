@@ -65,7 +65,48 @@ def classify_report(report_name):
         return "👤 대량보유 보고"
 
     return "📄 일반공시"
+def judge_impact(report_type, report_name):
+    name = report_name.replace(" ", "")
 
+    # 긍정 가능성이 높은 유형
+    if "공급계약" in report_type:
+        return "🟢 긍정 가능성"
+
+    if "무상증자" in report_type:
+        return "🟢 긍정 가능성"
+
+    if "자사주" in report_type:
+        if "처분" in name:
+            return "🔴 부정 가능성"
+        return "🟢 긍정 가능성"
+
+    if "배당" in report_type:
+        return "🟢 긍정 가능성"
+
+    # 희석/자금조달 가능성
+    if "유상증자" in report_type:
+        return "🔴 부정 가능성"
+
+    if "전환사채" in report_type:
+        return "🔴 부정 가능성"
+
+    if "신주인수권부사채" in report_type:
+        return "🔴 부정 가능성"
+
+    # 내용에 따라 달라지는 공시
+    if "실적" in report_type:
+        return "⚪ 실적 확인 필요"
+
+    if "최대주주" in report_type:
+        return "⚪ 내용 확인 필요"
+
+    if "합병" in report_type or "회사분할" in report_type:
+        return "⚪ 내용 확인 필요"
+
+    if "대량보유" in report_type:
+        return "⚪ 지분변동 확인"
+
+    return "⚪ 중립"
 # =========================
 # DART 오늘 공시 전체 조회
 # =========================
