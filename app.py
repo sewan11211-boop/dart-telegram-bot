@@ -622,17 +622,17 @@ def send_telegram(item):
         },
         timeout=20,
     )
-response.raise_for_status()
-sent_message_id = response.json().get("result", {}).get("message_id")
+    response.raise_for_status()
+    sent_message_id = response.json().get("result", {}).get("message_id")
 
-if sent_message_id:
-    ai_analysis = make_ai_analysis(
-        corp_name,
-        report_name,
-        report_type,
-        summary,
-        impact,
-        document_text
+    if sent_message_id:
+        ai_analysis = make_ai_analysis(
+            corp_name,
+            report_name,
+            report_type,
+            summary,
+            impact,
+            document_text
     )
 
     reply_url = (
