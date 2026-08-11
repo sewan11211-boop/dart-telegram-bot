@@ -3,6 +3,7 @@ import time
 import re
 import html
 import io
+import json
 import zipfile
 import requests
 
@@ -623,6 +624,35 @@ def send_telegram(item):
     )
 
     response.raise_for_status()
+    telegram_result = response.json()
+sent_message_id = telegram_result.get("result", {}).get("message_id")
+
+if sent_message_id:
+    ai_analysis = make_ai_analysis(
+        corp_name,
+        report_name,
+        report_type,
+        summary,
+        impact,
+        document_text
+    )
+
+    reply_url = (
+        "https://api.telegram.org/"
+        f"bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    )
+
+    requests.post(
+        reply_url,
+        data={
+            "chat_id": TELEGRAM_CHAT_ID,
+            "text": "🤖 AI 참고 분석\n\n" + ai_analysis,
+            "reply_parameters": json.dumps({
+                "message_id": sent_message_id
+            }),
+        },
+        timeout=60,
+    )
 # =========================
 # 신규 공시 확인
 # =========================
