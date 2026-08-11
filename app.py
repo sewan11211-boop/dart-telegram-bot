@@ -145,7 +145,7 @@ def make_ai_analysis(
 
         response.raise_for_status()
 
-   data = response.json()
+        data = response.json()
 
 result = ""
 for output in data.get("output", []):
