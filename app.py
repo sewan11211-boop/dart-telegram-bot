@@ -128,6 +128,8 @@ def make_ai_analysis(
 투자 권유나 수익을 보장하는 내용이 아닙니다.
 """
     try:
+        time.sleep(1)
+
         response = requests.post(
             "https://api.openai.com/v1/responses",
             headers={
@@ -138,15 +140,36 @@ def make_ai_analysis(
                 "model": "gpt-5-mini",
                 "input": prompt,
                 "store": False,
+                "max_output_tokens": 300,
             },
             timeout=60,
         )
+
+        if response.status_code == 429:
+            print("AI 분석 429 제한:", response.text[:500])
+            time.sleep(3)
+
+            response = requests.post(
+                "https://api.openai.com/v1/responses",
+                headers={
+                    "Authorization": f"Bearer {OPENAI_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "gpt-5-mini",
+                    "input": prompt,
+                    "store": False,
+                    "max_output_tokens": 300,
+                },
+                timeout=60,
+            )
 
         response.raise_for_status()
 
         data = response.json()
 
         result = ""
+
         for output in data.get("output", []):
             for content in output.get("content", []):
                 if content.get("type") == "output_text":
@@ -160,7 +183,6 @@ def make_ai_analysis(
     except Exception as e:
         print("AI 분석 실패:", e)
         return "AI 분석을 일시적으로 불러오지 못했습니다."
-
 def judge_impact(report_type, report_name):
     name = report_name.replace(" ", "")
 
