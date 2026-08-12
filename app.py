@@ -127,39 +127,40 @@ def make_ai_analysis(
 ※ 공시 및 공개된 정보를 바탕으로 작성한 참고용 분석이며,
 투자 권유나 수익을 보장하는 내용이 아닙니다.
 """
+try:
+    response = requests.post(
+        "https://api.openai.com/v1/responses",
+        headers={
+            "Authorization": f"Bearer {OPENAI_API_KEY}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": "gpt-5-mini",
+            "input": prompt,
+            "store": False,
+        },
+        timeout=60,
+    )
 
-    try:
-        response = requests.post(
-            "https://api.openai.com/v1/responses",
-            headers={
-                "Authorization": f"Bearer {OPENAI_API_KEY}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": "gpt-5-mini",
-                "input": prompt,
-                "store": False,
-            },
-            timeout=60,
-        )
+    response.raise_for_status()
 
-        response.raise_for_status()
+    data = response.json()
 
-        data = response.json()
+    result = ""
+    for output in data.get("output", []):
+        for content in output.get("content", []):
+            if content.get("type") == "output_text":
+                result += content.get("text", "")
 
-result = ""
-for output in data.get("output", []):
-    for content in output.get("content", []):
-        if content.get("type") == "output_text":
-            result += content.get("text", "")
+    if result:
+        return result.strip()
 
-if result:
-    return result.strip()
     return "AI 분석 결과를 가져오지 못했습니다."
 
-    except Exception as e:
-        print("AI 분석 실패:", e)
-        return "AI 분석을 일시적으로 불러오지 못했습니다."
+except Exception as e:
+    print("AI 분석 실패:", e)
+    return "AI 분석을 일시적으로 불러오지 못했습니다."
+
 def judge_impact(report_type, report_name):
     name = report_name.replace(" ", "")
 
